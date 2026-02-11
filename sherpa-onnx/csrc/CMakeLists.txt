@@ -343,6 +343,10 @@ if(ANDROID_NDK)
   target_link_libraries(sherpa-onnx-core android log)
 endif()
 
+if(SHERPA_ONNX_IS_TERMUX)
+  target_compile_definitions(sherpa-onnx-core PRIVATE SHERPA_ONNX_NO_ANDROID_ASSET=1)
+endif()
+
 target_link_libraries(sherpa-onnx-core
   kaldi-native-fbank-core
   kaldi-decoder-core

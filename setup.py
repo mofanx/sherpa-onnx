@@ -11,6 +11,7 @@ from cmake.cmake_extension import (
     bdist_wheel,
     cmake_extension,
     get_binaries,
+    is_termux,
     is_windows,
     need_split_package,
 )
@@ -53,6 +54,9 @@ def get_binaries_to_install():
     if need_split_package():
         return None
 
+    if is_termux():
+        return None
+
     cmake_args = os.environ.get("SHERPA_ONNX_CMAKE_ARGS", "")
     if "-DSHERPA_ONNX_ENABLE_BINARY=OFF" in cmake_args:
         return None
@@ -67,8 +71,9 @@ def get_binaries_to_install():
     for f in binaries:
         suffix = "" if (".dll" in f or ".lib" in f) else suffix
         t = bin_dir / (f + suffix)
-        exe.append(str(t))
-    return exe
+        if t.exists():
+            exe.append(str(t))
+    return exe if exe else None
 
 
 setuptools.setup(
@@ -79,8 +84,9 @@ setuptools.setup(
     author_email="dpovey@gmail.com",
     package_dir={
         "sherpa_onnx": "sherpa-onnx/python/sherpa_onnx",
+        "sherpa_onnx.lib": "sherpa-onnx/python/sherpa_onnx/lib",
     },
-    packages=["sherpa_onnx"],
+    packages=["sherpa_onnx", "sherpa_onnx.lib"],
     data_files=(
         [
             (

@@ -38,6 +38,11 @@ def is_linux():
     return platform.system() == "Linux"
 
 
+def is_termux():
+    """Detect if running inside Termux on Android."""
+    return os.environ.get("PREFIX", "").startswith("/data/data/com.termux")
+
+
 def is_arm64():
     return platform.machine() in ["arm64", "aarch64"]
 
@@ -163,9 +168,14 @@ class BuildExtension(build_ext):
         extra_cmake_args += " -DSHERPA_ONNX_BUILD_C_API_EXAMPLES=OFF "
         extra_cmake_args += " -DSHERPA_ONNX_ENABLE_CHECK=OFF "
         extra_cmake_args += " -DSHERPA_ONNX_ENABLE_PYTHON=ON "
-        extra_cmake_args += " -DSHERPA_ONNX_ENABLE_PORTAUDIO=ON "
-        if not need_split_package():
-            extra_cmake_args += " -DSHERPA_ONNX_ENABLE_WEBSOCKET=ON "
+        if is_termux():
+            extra_cmake_args += " -DSHERPA_ONNX_ENABLE_PORTAUDIO=OFF "
+            extra_cmake_args += " -DSHERPA_ONNX_ENABLE_WEBSOCKET=OFF "
+            extra_cmake_args += " -DSHERPA_ONNX_ENABLE_BINARY=OFF "
+        else:
+            extra_cmake_args += " -DSHERPA_ONNX_ENABLE_PORTAUDIO=ON "
+            if not need_split_package():
+                extra_cmake_args += " -DSHERPA_ONNX_ENABLE_WEBSOCKET=ON "
 
         if "PYTHON_EXECUTABLE" not in cmake_args:
             print(f"Setting PYTHON_EXECUTABLE to {sys.executable}")

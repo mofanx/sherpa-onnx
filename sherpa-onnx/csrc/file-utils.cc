@@ -50,6 +50,14 @@ std::vector<char> ReadFile(const std::string &filename) {
 }
 
 #if __ANDROID_API__ >= 9
+#if defined(SHERPA_ONNX_NO_ANDROID_ASSET)
+// Termux stub: AAssetManager is not available in Termux, fall back to
+// regular file-based ReadFile.
+std::vector<char> ReadFile(AAssetManager * /*mgr*/,
+                           const std::string &filename) {
+  return ReadFile(filename);
+}
+#else
 std::vector<char> ReadFile(AAssetManager *mgr, const std::string &filename) {
   if (!filename.empty() && filename[0] == '/') {
     SHERPA_ONNX_LOGE(
@@ -80,7 +88,8 @@ std::vector<char> ReadFile(AAssetManager *mgr, const std::string &filename) {
 
   return buffer;
 }
-#endif
+#endif  // SHERPA_ONNX_NO_ANDROID_ASSET
+#endif  // __ANDROID_API__ >= 9
 
 #if __OHOS__
 std::vector<char> ReadFile(NativeResourceManager *mgr,

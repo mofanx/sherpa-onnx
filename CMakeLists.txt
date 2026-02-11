@@ -143,6 +143,13 @@ if(NOT WIN32)
   set(CMAKE_BUILD_RPATH ${SHERPA_ONNX_RPATH_ORIGIN})
 endif()
 
+if(DEFINED ENV{PREFIX} AND "$ENV{PREFIX}" MATCHES "^/data/data/com\\.termux")
+  set(SHERPA_ONNX_IS_TERMUX TRUE)
+  message(STATUS "Detected Termux environment (PREFIX=$ENV{PREFIX})")
+else()
+  set(SHERPA_ONNX_IS_TERMUX FALSE)
+endif()
+
 if(NOT CMAKE_BUILD_TYPE)
   message(STATUS "No CMAKE_BUILD_TYPE given, default to Release")
   set(CMAKE_BUILD_TYPE Release)

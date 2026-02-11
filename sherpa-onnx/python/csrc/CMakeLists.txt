@@ -108,10 +108,25 @@ if(APPLE)
 endif()
 
 if(NOT WIN32)
-  target_link_libraries(_sherpa_onnx PRIVATE "-Wl,-rpath,${SHERPA_ONNX_RPATH_ORIGIN}/sherpa_onnx/lib")
+  # Use CMake RPATH properties instead of manual -Wl,-rpath flags.
+  # Manual flags break with Ninja because $ORIGIN is consumed by Ninja's
+  # own variable expansion, producing empty or wrong rpath entries.
+  set_property(TARGET _sherpa_onnx APPEND PROPERTY INSTALL_RPATH "${SHERPA_ONNX_RPATH_ORIGIN}/sherpa_onnx/lib")
+  set_property(TARGET _sherpa_onnx APPEND PROPERTY BUILD_RPATH "${SHERPA_ONNX_RPATH_ORIGIN}/sherpa_onnx/lib")
 endif()
 
-target_link_libraries(_sherpa_onnx PRIVATE sherpa-onnx-core)
+if(SHERPA_ONNX_IS_TERMUX)
+  # Termux/bionic: force pull all symbols from the static library into the
+  # Python extension so that no C++ symbols are missing at dlopen() time.
+  target_link_libraries(_sherpa_onnx PRIVATE
+    -Wl,--whole-archive
+    sherpa-onnx-core
+    -Wl,--no-whole-archive
+  )
+  target_link_libraries(_sherpa_onnx PRIVATE log)
+else()
+  target_link_libraries(_sherpa_onnx PRIVATE sherpa-onnx-core)
+endif()
 
 if(SHERPA_ONNX_HAS_ALSA)
   if(DEFINED ENV{SHERPA_ONNX_ALSA_LIB_DIR})

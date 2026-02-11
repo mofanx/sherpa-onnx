@@ -10,8 +10,12 @@
 #include <vector>
 
 #if __ANDROID_API__ >= 9
+#if !defined(SHERPA_ONNX_NO_ANDROID_ASSET)
 #include "android/asset_manager.h"
 #include "android/asset_manager_jni.h"
+#else
+struct AAssetManager;
+#endif
 #endif
 
 #if __OHOS__
@@ -37,7 +41,7 @@ std::vector<char> ReadFile(const std::string &filename);
 
 #if __ANDROID_API__ >= 9
 std::vector<char> ReadFile(AAssetManager *mgr, const std::string &filename);
-#endif
+#endif  // __ANDROID_API__ >= 9
 
 #if __OHOS__
 std::vector<char> ReadFile(NativeResourceManager *mgr,
